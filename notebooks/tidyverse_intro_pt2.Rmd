@@ -1,0 +1,126 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+```{r}
+library('tidyverse')
+```
+
+1. Read in `districts.csv` into a tibble named `districts`.
+
+```{r}
+districts <- read_csv('../data/districts.csv')
+```
+
+2. Notice that the first row corresponds to the whole State of Tennessee. Remove this row and save the result back to `districts`.
+
+```{r}
+districts <- districts[-c(1),]
+```
+
+3. How many districts have a proficiency rate of at least 80% for both alg_1 and eng_1?
+
+BEST answer:
+```{r}
+districts |> 
+  filter(alg_1 >= 80, eng_1 >= 80) |> 
+  nrow()
+```
+
+Other ways:
+```{r}
+districts |>
+  filter(alg_1 >= 80, eng_1 >= 80)
+```
+```{r}
+districts |> 
+  count(alg_1 >= 80, eng_1 >= 80)
+```
+
+4. How many districts have a proficiency rate less than 50% for either alg_1 or eng_1?
+
+```{r}
+districts |> 
+  filter(alg_1 < 50 | eng_1 < 50) |> 
+  nrow()
+```
+
+```{r}
+districts |> 
+  filter(alg_1 < 50 | eng_1 < 50)
+```
+
+5. Which district has the lowest graduation rate?
+
+```{r}
+districts |> 
+  select(region, grad) |> 
+  arrange(grad) |> 
+  head(1)
+```
+
+```{r}
+districts |> 
+  select(system_name, grad) |> 
+  arrange(grad) |> 
+  head(1)
+```
+
+
+6. Within the Mid Cumberland region, which district has the highest ACT composite?
+
+```{r}
+districts |> 
+  filter(region == "Mid Cumberland") |> 
+  select(system_name, act_composite) |> 
+  arrange(desc(act_composite)) |> 
+  head(1)
+```
+
+7. Create a scatter plot to compare alg_1 proficiency rates to alg_2 rates. What do you notice? Facet this plot by region. Does anything stand out when you facet the plots?
+
+```{r}
+districts |> 
+  ggplot(aes(x = alg_1, y = alg_2)) + geom_point()
+```
+
+It seems that there is a strong positive linear relationship between algebra 1 and 2 proficiency rates. 
+
+```{r}
+districts |> 
+  ggplot(aes(x = alg_1, y = alg_2)) + geom_point() + facet_wrap(~region)
+```
+
+Observations: Some districts seems to have a better proficiency than the rest. Notable districts are Southwest/Memphis, First TN, and South Central. Southeast and Upper Cumberland districts seem to have poorer relationships. 
+
+8. When creating this bar chart you may have noticed that some districts have missing enrollment values. For how many districts is this the case?
+
+
+```{r}
+districts |> 
+  filter(is.na(enrollment)) |> 
+  nrow()
+```
+
+9. A lot of rows are missing additional values. Which district has the largest number of missing values (across all variables)? Hint: you might want to look at rowwise and c_across to answer this question.
+
+BEST answer: 
+
+```{r}
+districts |> 
+  mutate(count_na = rowSums(is.na(districts))) |> 
+  arrange(desc(count_na)) |> 
+  select(system_name, count_na) |> 
+  head(1)
+```
+
+```{r}
+na_test <- districts[rowSums(is.na(districts))> 0,] 
+```
+
+10. What is the mean graduation rate across all districts? What might be wrong with using just the regular mean to assess average graduation rates?
+
+11. Redo the previous question but use a weighted average (`weighted.mean`) graduation across all districts, weighing by enrollment. How much does this change your answer? Can you explain using the data the reason for the big change from using the mean?
+
+12. Find the unweighted and weighted average graduation rate by district.
